@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Planner - AI Study Assistant</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts for clean modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- ==========================================
+         SIDEBAR NAVIGATION
+         ========================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">🎓</span>
+          <div>
+            <h1 class="logo-title">Smart Study</h1>
+            <span class="logo-subtitle">AI Study Planner</span>
+          </div>
+        </div>
+        <button class="btn-icon mobile-close-btn" id="closeSidebarBtn" aria-label="Close Sidebar">&times;</button>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-section="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-section="today">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">Today's Plan</span>
+          <span class="badge" id="navTodayBadge">0</span>
+        </button>
+        <button class="nav-item" data-section="subjects">
+          <span class="nav-icon">📚</span>
+          <span class="nav-label">Subjects</span>
+          <span class="badge" id="navSubjectsBadge">0</span>
+        </button>
+        <button class="nav-item" data-section="topics">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">Topics</span>
+        </button>
+        <button class="nav-item" data-section="tasks">
+          <span class="nav-icon">⏱️</span>
+          <span class="nav-label">Study Tasks</span>
+          <span class="badge" id="navTasksBadge">0</span>
+        </button>
+        <button class="nav-item" data-section="calendar">
+          <span class="nav-icon">📆</span>
+          <span class="nav-label">Calendar</span>
+        </button>
+        <button class="nav-item" data-section="progress">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Progress</span>
+        </button>
+        <button class="nav-item" data-section="ai">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">AI Assistant</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="streak-mini-card">
+          <span class="streak-icon">🔥</span>
+          <div>
+            <div class="streak-mini-title">Active Streak</div>
+            <div class="streak-mini-count" id="sidebarStreakCount">0 Days</div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn btn-secondary btn-sm" id="resetDemoBtn" title="Reset back to initial example records">
+            🔄 Load Demo Data
+          </button>
+          <button class="btn btn-outline-danger btn-sm" id="clearAllBtn" title="Delete all stored planner data">
+            🗑️ Clear All
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ==========================================
+         MAIN APP CONTENT
+         ========================================== -->
+    <div class="main-wrapper">
+      <!-- TOP NAVBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-icon mobile-menu-btn" id="openSidebarBtn" aria-label="Open navigation menu">
+            ☰
+          </button>
+          <div class="greeting-box">
+            <h2 class="greeting-text" id="greetingText">Good Morning, Student 👋</h2>
+            <p class="current-date" id="currentDateText">Loading date...</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-primary btn-sm" id="quickAddTaskBtn">
+            <span>+</span> Add Task
+          </button>
+        </div>
+      </header>
+
+      <!-- NOTIFICATION / TOAST CONTAINER -->
+      <div id="toastNotification" class="toast"></div>
+
+      <!-- MAIN SCROLLABLE CONTAINER -->
+      <main class="content-container">
+
+        <!-- ==========================================
+             1. DASHBOARD SECTION
+             ========================================== -->
+        <section id="section-dashboard" class="content-section active">
+          <!-- 4 SUMMARY CARDS -->
+          <div class="summary-cards-grid">
+            <!-- Card 1: Today's Study Goal -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Today's Goal</span>
+                <span class="stat-icon-wrapper bg-blue">🎯</span>
+              </div>
+              <div class="stat-value" id="cardTodayGoal">3.0 Hours</div>
+              <div class="stat-footer">
+                <button class="btn-link" id="editGoalBtn">Change goal</button>
+              </div>
+            </div>
+
+            <!-- Card 2: Study Time -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Study Time</span>
+                <span class="stat-icon-wrapper bg-green">⏳</span>
+              </div>
+              <div class="stat-value" id="cardStudyTime">0.0 Hours</div>
+              <div class="stat-footer" id="cardStudyTimeSubtext">
+                Completed today
+              </div>
+            </div>
+
+            <!-- Card 3: Tasks Completed -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Tasks Completed</span>
+                <span class="stat-icon-wrapper bg-purple">✅</span>
+              </div>
+              <div class="stat-value" id="cardTasksCompleted">0 / 0</div>
+              <div class="stat-footer" id="cardTasksCompletedSubtext">
+                0% completed today
+              </div>
+            </div>
+
+            <!-- Card 4: Study Streak -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Study Streak</span>
+                <span class="stat-icon-wrapper bg-amber">🔥</span>
+              </div>
+              <div class="stat-value" id="cardStudyStreak">0 Days</div>
+              <div class="stat-footer" id="cardStreakSubtext">
+                Keep the momentum going!
+              </div>
+            </div>
+          </div>
+
+          <!-- DASHBOARD SPLIT: TODAY'S PLAN & AI ASSISTANT -->
+          <div class="dashboard-grid">
+            <!-- Left: Today's Study Plan -->
+            <div class="card dashboard-plan-card">
+              <div class="card-header flex-between">
+                <div>
+                  <h3 class="card-title">📅 Today's Study Plan</h3>
+                  <p class="card-subtitle" id="todayPlanDateSubtitle">Tasks scheduled for today</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="viewAllTodayBtn">Full Plan</button>
+              </div>
+
+              <!-- Today's Progress Bar -->
+              <div class="progress-box">
+                <div class="progress-info">
+                  <span class="progress-label">Today's Progress</span>
+                  <span class="progress-percent" id="todayProgressPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="todayProgressBar" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <!-- Task List for Today -->
+              <div class="today-task-list" id="dashboardTodayTaskList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Right: AI Study Assistant Widget -->
+            <div class="card ai-card">
+              <div class="card-header flex-between">
+                <div class="ai-header-title">
+                  <span class="ai-sparkle">✨</span>
+                  <h3 class="card-title">🤖 AI Study Assistant</h3>
+                </div>
+                <span class="badge badge-ai">Smart Logic</span>
+              </div>
+
+              <div class="ai-recommendation-box" id="dashboardAiBox">
+                <!-- Dynamic AI Recommendation -->
+              </div>
+
+              <div class="ai-quick-actions">
+                <button class="btn btn-secondary btn-sm full-width" id="dashboardAiRefreshBtn">
+                  🔄 Refresh AI Suggestions
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK ACCESS TO SUBJECTS OVERVIEW -->
+          <div class="card mt-4">
+            <div class="card-header flex-between">
+              <div>
+                <h3 class="card-title">📚 Enrolled Subjects</h3>
+                <p class="card-subtitle">Your current subjects and study hours</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" data-nav-target="subjects">+ Manage Subjects</button>
+            </div>
+            <div class="subject-chips-list" id="dashboardSubjectChips">
+              <!-- Dynamically populated chips -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             2. TODAY'S STUDY PLAN SECTION
+             ========================================== -->
+        <section id="section-today" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">📅 Today's Study Plan</h2>
+              <p class="section-subtitle">Focus on your targets for today and maintain your study streak.</p>
+            </div>
+            <button class="btn btn-primary" id="todayAddTaskBtn">+ Add Task for Today</button>
+          </div>
+
+          <!-- Progress summary card -->
+          <div class="card mb-4">
+            <div class="card-header flex-between">
+              <h3 class="card-title">Today's Completion Progress</h3>
+              <span class="badge badge-blue" id="todayTaskCountBadge">0 Tasks</span>
+            </div>
+            <div class="progress-box">
+              <div class="progress-info">
+                <span class="progress-label" id="todayProgressText">0 of 0 tasks completed</span>
+                <span class="progress-percent" id="todayDetailProgressPercent">0%</span>
+              </div>
+              <div class="progress-track lg">
+                <div class="progress-fill" id="todayDetailProgressBar" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasks list container -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Scheduled Sessions</h3>
+            </div>
+            <div class="tasks-container" id="todayTasksFullList">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             3. SUBJECTS SECTION
+             ========================================== -->
+        <section id="section-subjects" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">📚 Manage Subjects</h2>
+              <p class="section-subtitle">Define your course subjects, estimated study hours, and difficulty.</p>
+            </div>
+          </div>
+
+          <div class="grid-2-col">
+            <!-- Form to add subject -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Add New Subject</h3>
+              </div>
+              <form id="addSubjectForm" class="app-form" novalidate>
+                <div class="form-group">
+                  <label for="subjectNameInput">Subject Name <span class="required">*</span></label>
+                  <input type="text" id="subjectNameInput" placeholder="e.g. Data Structures, Operating Systems" required>
+                  <small class="form-error" id="subjectNameError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="subjectHoursInput">Total Study Hours <span class="required">*</span></label>
+                  <input type="number" id="subjectHoursInput" min="1" max="500" placeholder="e.g. 30" required>
+                  <small class="form-error" id="subjectHoursError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="subjectDifficultySelect">Difficulty Level <span class="required">*</span></label>
+                  <select id="subjectDifficultySelect" required>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary full-width">
+                  + Add Subject
+                </button>
+              </form>
+            </div>
+
+            <!-- Subject list -->
+            <div class="card">
+              <div class="card-header flex-between">
+                <h3 class="card-title">Your Subjects</h3>
+                <span class="badge badge-purple" id="subjectCountBadge">0 Subjects</span>
+              </div>
+              <div class="list-container" id="subjectsList">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             4. TOPICS SECTION
+             ========================================== -->
+        <section id="section-topics" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">📝 Study Topics</h2>
+              <p class="section-subtitle">Break subjects down into topics and tag your proficiency (Weak, Average, Strong).</p>
+            </div>
+          </div>
+
+          <div class="grid-2-col">
+            <!-- Form to add topic -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Add Topic</h3>
+              </div>
+              <form id="addTopicForm" class="app-form" novalidate>
+                <div class="form-group">
+                  <label for="topicSubjectSelect">Select Subject <span class="required">*</span></label>
+                  <select id="topicSubjectSelect" required>
+                    <option value="">-- Choose Subject --</option>
+                  </select>
+                  <small class="form-error" id="topicSubjectError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="topicNameInput">Topic Name <span class="required">*</span></label>
+                  <input type="text" id="topicNameInput" placeholder="e.g. Binary Search, CPU Scheduling" required>
+                  <small class="form-error" id="topicNameError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="topicDifficultySelect">Proficiency / Understanding <span class="required">*</span></label>
+                  <select id="topicDifficultySelect" required>
+                    <option value="Weak" selected>Weak (Needs most focus)</option>
+                    <option value="Average">Average (Moderate practice)</option>
+                    <option value="Strong">Strong (Comfortable)</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary full-width">
+                  + Add Topic
+                </button>
+              </form>
+            </div>
+
+            <!-- Topics list -->
+            <div class="card">
+              <div class="card-header flex-between">
+                <h3 class="card-title">Topic Repository</h3>
+                <div class="filter-box">
+                  <select id="topicFilterSubject" class="select-sm">
+                    <option value="all">All Subjects</option>
+                  </select>
+                </div>
+              </div>
+              <div class="list-container" id="topicsList">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             5. STUDY TASKS SECTION
+             ========================================== -->
+        <section id="section-tasks" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">⏱️ Study Tasks</h2>
+              <p class="section-subtitle">Create study sessions, set dates, and check them off as you study.</p>
+            </div>
+          </div>
+
+          <div class="grid-2-col">
+            <!-- Create task form -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Create Study Task</h3>
+              </div>
+              <form id="addTaskForm" class="app-form" novalidate>
+                <div class="form-group">
+                  <label for="taskNameInput">Task Name <span class="required">*</span></label>
+                  <input type="text" id="taskNameInput" placeholder="e.g. Practice Binary Search Problems" required>
+                  <small class="form-error" id="taskNameError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="taskSubjectSelect">Subject <span class="required">*</span></label>
+                  <select id="taskSubjectSelect" required>
+                    <option value="">-- Choose Subject --</option>
+                  </select>
+                  <small class="form-error" id="taskSubjectError"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="taskTopicSelect">Topic (Optional)</label>
+                  <select id="taskTopicSelect">
+                    <option value="">-- Choose Topic (Optional) --</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="taskDateInput">Study Date <span class="required">*</span></label>
+                    <input type="date" id="taskDateInput" required>
+                    <small class="form-error" id="taskDateError"></small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="taskDurationInput">Duration (Minutes) <span class="required">*</span></label>
+                    <input type="number" id="taskDurationInput" min="5" max="480" step="5" value="45" required>
+                    <small class="form-error" id="taskDurationError"></small>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary full-width">
+                  + Add Study Task
+                </button>
+              </form>
+            </div>
+
+            <!-- Task lists with filter tabs -->
+            <div class="card">
+              <div class="card-header flex-between flex-wrap gap-2">
+                <h3 class="card-title">All Study Tasks</h3>
+                <div class="task-filter-pills">
+                  <button class="pill-btn active" data-filter="all">All</button>
+                  <button class="pill-btn" data-filter="pending">Pending</button>
+                  <button class="pill-btn" data-filter="completed">Completed</button>
+                </div>
+              </div>
+              <div class="tasks-container" id="allTasksList">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             6. CALENDAR SECTION
+             ========================================== -->
+        <section id="section-calendar" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">📆 Study Calendar</h2>
+              <p class="section-subtitle">View and schedule study sessions by date. Click any date to see planned tasks.</p>
+            </div>
+          </div>
+
+          <div class="calendar-layout">
+            <!-- Calendar Card -->
+            <div class="card calendar-card">
+              <div class="calendar-header">
+                <h3 class="calendar-title" id="calendarMonthYear">Month Year</h3>
+                <div class="calendar-nav-buttons">
+                  <button class="btn-icon" id="prevMonthBtn" title="Previous Month">◀</button>
+                  <button class="btn btn-secondary btn-sm" id="todayMonthBtn">Today</button>
+                  <button class="btn-icon" id="nextMonthBtn" title="Next Month">▶</button>
+                </div>
+              </div>
+
+              <!-- Day Names Header -->
+              <div class="calendar-weekdays">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+              </div>
+
+              <!-- Calendar Grid -->
+              <div class="calendar-days-grid" id="calendarDaysGrid">
+                <!-- Dynamically loaded 35 or 42 day cells -->
+              </div>
+            </div>
+
+            <!-- Selected Date Details Panel -->
+            <div class="card calendar-details-card">
+              <div class="card-header flex-between">
+                <div>
+                  <h3 class="card-title" id="selectedDateTitle">Selected Date</h3>
+                  <p class="card-subtitle" id="selectedDateSubtitle">Planned tasks</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="addForSelectedDateBtn">
+                  + Add for this Date
+                </button>
+              </div>
+              <div class="tasks-container" id="calendarSelectedTaskList">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             7. PROGRESS TRACKER SECTION
+             ========================================== -->
+        <section id="section-progress" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">📊 Study Progress & Analytics</h2>
+              <p class="section-subtitle">Real-time statistics calculated directly from your study activity.</p>
+            </div>
+          </div>
+
+          <!-- Progress Overview Numbers -->
+          <div class="summary-cards-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Total Tasks</span>
+                <span class="stat-icon-wrapper bg-blue">📋</span>
+              </div>
+              <div class="stat-value" id="progTotalTasks">0</div>
+              <div class="stat-footer">Across all subjects</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Completed Tasks</span>
+                <span class="stat-icon-wrapper bg-green">✅</span>
+              </div>
+              <div class="stat-value" id="progCompletedTasks">0</div>
+              <div class="stat-footer" id="progCompletedRatio">0% completed</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Pending Tasks</span>
+                <span class="stat-icon-wrapper bg-amber">⏳</span>
+              </div>
+              <div class="stat-value" id="progPendingTasks">0</div>
+              <div class="stat-footer">Tasks left to study</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Completed Study Hours</span>
+                <span class="stat-icon-wrapper bg-purple">⏱️</span>
+              </div>
+              <div class="stat-value" id="progCompletedHours">0.0 hrs</div>
+              <div class="stat-footer" id="progTotalPlannedHours">of 0.0 hrs planned</div>
+            </div>
+          </div>
+
+          <!-- Visual Progress Bars -->
+          <div class="grid-2-col mt-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Overall Task Completion</h3>
+              </div>
+              <div class="progress-box large-progress">
+                <div class="progress-info">
+                  <span class="progress-label font-bold">Total Completion Rate</span>
+                  <span class="progress-percent font-bold" id="progOverallPercent">0%</span>
+                </div>
+                <div class="progress-track lg">
+                  <div class="progress-fill" id="progOverallBar" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="progress-box large-progress mt-4">
+                <div class="progress-info">
+                  <span class="progress-label font-bold">Planned Study Time Completed</span>
+                  <span class="progress-percent font-bold" id="progTimePercent">0%</span>
+                </div>
+                <div class="progress-track lg">
+                  <div class="progress-fill bg-success" id="progTimeBar" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subject-wise Task Breakdown -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Subject Breakdown</h3>
+              </div>
+              <div id="subjectProgressBreakdown" class="subject-breakdown-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             8. AI STUDY ASSISTANT SECTION
+             ========================================== -->
+        <section id="section-ai" class="content-section">
+          <div class="section-heading">
+            <div>
+              <h2 class="section-title">🤖 AI Study Assistant</h2>
+              <p class="section-subtitle">Smart recommendations based on your weak topics, pending tasks, and daily study goal.</p>
+            </div>
+            <button class="btn btn-primary" id="aiRefreshPageBtn">
+              🔄 Re-analyze Study Data
+            </button>
+          </div>
+
+          <!-- Featured Recommendation Banner -->
+          <div class="ai-hero-card" id="aiHeroRecommendation">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Deep AI Insights Grid -->
+          <div class="grid-3-col mt-4" id="aiInsightsGrid">
+            <!-- Dynamically populated insight cards -->
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: EDIT DAILY STUDY GOAL
+       ========================================== -->
+  <div class="modal" id="goalModal">
+    <div class="modal-backdrop" id="goalModalBackdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">🎯 Set Daily Study Goal</h3>
+        <button class="btn-icon" id="closeGoalModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="dailyGoalInput">Target Study Hours per Day</label>
+          <input type="number" id="dailyGoalInput" min="0.5" max="16" step="0.5" value="3.0">
+          <small class="form-hint">Setting a realistic goal helps you build consistent daily habits.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelGoalModalBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveGoalModalBtn">Save Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
