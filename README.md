@@ -595,7 +595,3 @@ B.Tech in Information Technology
 If you find this project useful for learning, consider giving the repository a ⭐ on GitHub.
 
 ---
-
-## 📄 License
-
-This project is created for educational and learning purposes.
